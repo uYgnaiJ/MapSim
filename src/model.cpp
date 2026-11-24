@@ -153,7 +153,7 @@ Map loadMap(const std::filesystem::path &path)
                 if (cols[0].empty() || cols[1].empty() || cols[2].empty() ||
                     !kingdoms.emplace(cols[0], m.kingdoms.size()).second)
                     throw std::runtime_error("Invalid or duplicate kingdom");
-                m.kingdoms.push_back({cols[0], cols[1], cols[2]});
+                m.kingdoms.push_back({cols[0], cols[1], cols[2], std::nullopt, 0, true});
             }
             else if (section == Section::Regions && cols.size() == (grouped ? 4u : 3u))
             {
@@ -191,7 +191,7 @@ Map loadMap(const std::filesystem::path &path)
                 auto terrain = std::find(terrainNames.begin(), terrainNames.end(), cols[projected ? 4 : 3]);
                 if (region == ids.end() || terrain == terrainNames.end())
                     throw std::runtime_error("Unknown region or terrain");
-                if (!m.tiles.emplace(h, Tile{region->second, Terrain(terrain - terrainNames.begin())}).second)
+                if (!m.tiles.emplace(h, Tile{region->second, Terrain(terrain - terrainNames.begin()), std::nullopt, std::nullopt, 0}).second)
                     throw std::runtime_error("Duplicate hex coordinate");
             }
             else

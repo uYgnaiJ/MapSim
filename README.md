@@ -40,6 +40,17 @@ The shaders are compiled into the executable. Running the built app requires a V
 - **G** toggles the grid. **L** toggles map labels. Scroll the region index to reach additional regions.
 - **Ctrl+Z / Ctrl+Y** undo and redo. **Ctrl+O** opens a file, **Ctrl+S** saves, and **Ctrl+Shift+S** saves a copy. Opening another map or closing the app prompts for unsaved changes.
 
+## Map modes
+
+The buttons above the map canvas switch between **Political (F1)**, **Natural (F2)**, **Religion (F3)**, **Culture (F4)**, and **Population (F5)**. The inspector shows the selected unit's mode-specific information, and the status bar identifies the current mode.
+
+- **Political** is the default. It starts with independent rulers or governing authorities and uses distinct polity colors. **Ctrl+left-click** enters the clicked polity's next political level; deeper levels work the same way. **E** returns to the initial political overview and fits it to the window. **F** fits the currently active polity instead of always fitting the whole map.
+- **Natural** colors and symbolizes terrain without political labels.
+- **Religion** and **Culture** color units by their predominant identity and place identity names along the main axis of their distribution. These layers describe the mainstream population, not automatically the religion or culture of a small occupying elite.
+- **Population** uses a continuous color scale and marks all values as estimates. It is a transparent historical model, not census data.
+
+Mode-specific data lives beside the atlas as `england-867.political`, `.natural`, `.religion`, `.culture`, and `.population`. Missing mode data produces neutral fallbacks for other maps; the stable three-axis unit IDs keep these sidecars independent of the editable atlas geometry. **Save a copy** copies any existing mode sidecars alongside the new atlas. Research notes, sources, data semantics, and validation details are in `docs/political.md`, `docs/natural.md`, `docs/religion.md`, `docs/culture.md`, and `docs/population.md`.
+
 ## Editable map files
 
 Each UTF-8 `.atlas` file holds one complete map. You can create and rename regions, change colors, or add units in any text editor. Reopen the file to load those edits. Save pending in-app changes first.
@@ -120,8 +131,10 @@ Keep the header, map name, optional version 3 grid, optional kingdoms, regions s
 | Files | Responsibility |
 | --- | --- |
 | `src/model.*` | Hex and region records, projected grids, three-axis unit IDs, validation, UTF-8 parsing, atomic saves |
+| `src/map_mode.hpp` | Shared interface for mode coloring, labels, legends, inspectors, and political descent |
+| `src/political.cpp`, `natural.cpp`, `religion.cpp`, `culture.cpp`, `population.cpp` | Independently researched and validated map-mode implementations |
+| `src/label_layout.*`, `src/canvas.*` | Territory-axis label layout, rotated text, 2D meshes, and font atlas |
 | `src/cartography.hpp` | Pointy-top axial geometry, hit testing, terrain symbols, map icons |
-| `src/main.cpp` | Win32 event loop, map editing, camera, undo/redo, inspector, file dialogs |
-| `src/canvas.*` | 2D mesh construction and font atlas |
+| `src/main.cpp` | Win32 event loop, map modes and hierarchy, map editing, camera, undo/redo, inspector, file dialogs |
 | `src/vulkan.*`, `shaders/` | Win32 surface, swapchain, rendering pipeline, resource lifetime |
 | `maps/` | Editable example map and blank starter |

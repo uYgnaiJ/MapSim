@@ -52,4 +52,6 @@ public:
     float width(const std::wstring& s,Font font,int size,float track=0);
     void text(float x,float y,const std::wstring& s,Font font,int size,Ink ink,float track=0);
     void center(float x,float y,const std::wstring& s,Font font,int size,Ink ink,float track=0);
+    // Rotate about the visual center of the label. Angles are in radians.
+    void centerRotated(float x,float y,const std::wstring& s,Font font,int size,Ink ink,float angle,float track=0);
 };

@@ -15,15 +15,28 @@ struct ProjectedGrid {
     double easting{}, northing{}, radius{};
     auto operator<=>(const ProjectedGrid&) const = default;
 };
-struct Kingdom { std::string id, name, ruler; };
+struct Kingdom {
+    std::string id, name, ruler;
+    std::optional<size_t> parent;
+    uint32_t color{};
+    bool independent{true};
+};
+struct Identity { std::string id, name; uint32_t color; };
 struct Region { std::string id, name; uint32_t color; std::optional<size_t> kingdom; };
 enum class Terrain { Plains, Forest, Hills, Mountains, Marsh };
 inline constexpr std::array terrainNames{"Plains","Forest","Hills","Mountains","Marsh"};
-struct Tile { size_t region; Terrain terrain; bool operator==(const Tile&) const = default; };
+struct Tile {
+    size_t region;
+    Terrain terrain;
+    std::optional<size_t> religion, culture;
+    uint32_t population{};
+    bool operator==(const Tile&) const = default;
+};
 struct Map {
     std::string name;
     std::optional<ProjectedGrid> grid;
     std::vector<Kingdom> kingdoms;
+    std::vector<Identity> religions, cultures;
     std::vector<Region> regions;
     std::map<Hex, Tile> tiles;
 };

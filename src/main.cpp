@@ -1,5 +1,7 @@
 #include "vulkan.hpp"
 #include "cartography.hpp"
+#include "map_mode.hpp"
+#include "label_layout.hpp"
 #include <windowsx.h>
 #include <commdlg.h>
 #include <shellapi.h>
@@ -25,6 +27,11 @@ enum Action
     Plus,
     RegionMenu,
     TerrainMenu,
+    ModePolitical,
+    ModeNatural,
+    ModeReligion,
+    ModeCulture,
+    ModePopulation,
     RegionStart = 100
 };
 struct Hit
@@ -46,6 +53,7 @@ public:
     Renderer renderer;
     Canvas c;
     Map map;
+    ModePtr mode;
     fs::path file;
     float W = 1200, H = 760, scale = 1, radius = 15, zoom = 1;
     V focus{}, mouse{-1, -1}, last{};
@@ -74,6 +82,8 @@ public:
     {
         dirty = true;
         boundsDirty = true;
+        if (mode)
+            mode->refresh();
         title();
         invalidate();
     }
@@ -124,11 +134,11 @@ public:
         }
         boundsDirty = false;
     }
-    void fit()
+    void fit(const std::vector<Hex> *only = nullptr)
     {
         float minX = 0, maxX = 0, minY = 0, maxY = 0;
         bool first = true;
-        for (auto &[h, _] : map.tiles)
+        auto accumulate = [&](Hex h)
         {
             V p = world(h);
             if (first)
@@ -141,7 +151,15 @@ public:
             maxX = std::max(p.x, maxX);
             minY = std::min(p.y, minY);
             maxY = std::max(p.y, maxY);
-        }
+        };
+        if (only && !only->empty())
+            for (auto h : *only)
+                accumulate(h);
+        else
+            for (auto &[h, _] : map.tiles)
+                accumulate(h);
+        if (first)
+            return;
         fitCenter = {(minX + maxX) * .5f, (minY + maxY) * .5f};
         float horizontal = (area.w - 86) / std::max(12.f, maxX - minX + 2);
         float vertical = (area.h - 83) / std::max(10.f, maxY - minY + 2);
@@ -149,6 +167,16 @@ public:
         radius = fitRadius;
         focus = fitCenter;
         zoom = 1;
+    }
+    fs::path modeData(const std::string &extension) const
+    {
+        return file.parent_path() / (file.stem().string() + "." + extension);
+    }
+    void setMode(ModeKind kind);
+    void fitActive()
+    {
+        auto active = mode ? mode->activeHexes() : std::vector<Hex>{};
+        fit(&active);
     }
     void layout()
     {
@@ -171,6 +199,7 @@ public:
         regionScroll = 0;
         tool = Select;
         brush = Terrain::Plains;
+        setMode(ModeKind::Political);
         refreshStats();
         if (!map.tiles.empty())
         {
@@ -206,6 +235,16 @@ public:
         try
         {
             saveMap(map, dest);
+            if (dest != file)
+                for (const char *extension : {"political", "natural", "religion", "culture", "population"})
+                {
+                    auto source = modeData(extension);
+                    if (fs::exists(source))
+                    {
+                        auto target = dest.parent_path() / (dest.stem().string() + "." + extension);
+                        fs::copy_file(source, target, fs::copy_options::overwrite_existing);
+                    }
+                }
             file = dest;
             dirty = false;
             title();
@@ -379,13 +418,28 @@ public:
             tool = id;
             break;
         case Fit:
-            fit();
+            fitActive();
             break;
         case Minus:
             setZoom(1 / 1.25f, origin());
             break;
         case Plus:
             setZoom(1.25f, origin());
+            break;
+        case ModePolitical:
+            setMode(ModeKind::Political);
+            break;
+        case ModeNatural:
+            setMode(ModeKind::Natural);
+            break;
+        case ModeReligion:
+            setMode(ModeKind::Religion);
+            break;
+        case ModeCulture:
+            setMode(ModeKind::Culture);
+            break;
+        case ModePopulation:
+            setMode(ModeKind::Population);
             break;
         case RegionMenu:
         case TerrainMenu:
@@ -421,10 +475,20 @@ public:
     void mapView();
     void panel();
     void draw();
+    void drawModeLabels();
+    void drawModeTools();
     void down(V p, bool middle)
     {
         mouse = p;
         last = p;
+        if (!middle && GetKeyState(VK_CONTROL) < 0 && area.has(p) && mode->kind() == ModeKind::Political)
+        {
+            selected = pick(p);
+            if (map.tiles.contains(*selected) && mode->descend(*selected))
+                fitActive();
+            invalidate();
+            return;
+        }
         int id = hit(p);
         if (id && !middle)
         {
@@ -498,6 +562,118 @@ public:
     int visibleRows() const { return std::max(1, int((side.h - (map.kingdoms.empty() ? 235 : 282)) / 42)); }
 };
 
+void Editor::setMode(ModeKind kind)
+{
+    ModePtr next;
+    switch (kind)
+    {
+    case ModeKind::Political:
+        next = createPoliticalMode(map, modeData("political"));
+        break;
+    case ModeKind::Natural:
+        next = createNaturalMode(map, modeData("natural"));
+        break;
+    case ModeKind::Religion:
+        next = createReligionMode(map, modeData("religion"));
+        break;
+    case ModeKind::Culture:
+        next = createCultureMode(map, modeData("culture"));
+        break;
+    case ModeKind::Population:
+        next = createPopulationMode(map, modeData("population"));
+        break;
+    }
+    if (!next)
+        throw std::runtime_error("Cannot create map mode");
+    mode = std::move(next);
+    mode->reset();
+    invalidate();
+}
+
+void Editor::drawModeLabels()
+{
+    if (!labels || !mode || mode->kind() == ModeKind::Population)
+        return;
+    std::vector<Box> placed;
+    for (const auto &set : mode->labels())
+    {
+        if (set.hexes.empty() || set.name.empty())
+            continue;
+        std::vector<V> points;
+        points.reserve(set.hexes.size());
+        for (auto h : set.hexes)
+            points.push_back(screen(h));
+        auto layout = measureLabel(points);
+        if (!layout.valid || !area.has(layout.center))
+            continue;
+        int z = std::clamp(int(std::sqrt(float(set.hexes.size())) * radius * .18f), 10, 32);
+        auto font = mode->kind() == ModeKind::Political ? Serif : Strong;
+        float track = .4f, available = std::min(area.w * .62f, std::max(72.f, layout.span * 1.12f));
+        while (z > 9 && c.width(set.name, font, z, track) > available)
+            --z;
+        float width = c.width(set.name, font, z, track);
+        if (width > available || width > area.w * .65f)
+            continue;
+        float angle = std::atan2(layout.axis.y, layout.axis.x);
+        float cs = std::abs(std::cos(angle)), sn = std::abs(std::sin(angle));
+        float hw = (width * cs + z * sn) * .5f + 5;
+        float hh = (width * sn + z * cs) * .5f + 5;
+        Box bounds{layout.center.x - hw, layout.center.y - hh, hw * 2, hh * 2};
+        bool overlap = false;
+        for (const auto &other : placed)
+            if (bounds.x < other.x + other.w && bounds.x + bounds.w > other.x &&
+                bounds.y < other.y + other.h && bounds.y + bounds.h > other.y)
+            {
+                overlap = true;
+                break;
+            }
+        if (overlap)
+            continue;
+        Ink ink = mix(set.color, dark, .78f);
+        for (auto d : {V{-1.3f, 0}, V{1.3f, 0}, V{0, -1.3f}, V{0, 1.3f}, V{-1, 1}, V{1, -1}})
+            c.centerRotated(layout.center.x + d.x, layout.center.y - z * .62f + d.y, set.name, font, z, 0xf4f1e5, angle, track);
+        c.centerRotated(layout.center.x, layout.center.y - z * .62f, set.name, font, z, ink, angle, track);
+        placed.push_back(bounds);
+    }
+}
+
+void Editor::drawModeTools()
+{
+    struct Entry { ModeKind kind; int action; const wchar_t *label; };
+    const Entry entries[] = {{ModeKind::Political, ModePolitical, L"Political"},
+                             {ModeKind::Natural, ModeNatural, L"Natural"},
+                             {ModeKind::Religion, ModeReligion, L"Religion"},
+                             {ModeKind::Culture, ModeCulture, L"Culture"},
+                             {ModeKind::Population, ModePopulation, L"Population"}};
+    float x = area.x + 62, y = area.y + 14;
+    float total = std::min(500.f, std::max(280.f, area.w - 165));
+    float bw = total / 5;
+    outline({x - 3, y - 3, total + 6, 34}, 0xc2cec2, 0xf9faf3, 6);
+    for (int i = 0; i < 5; ++i)
+    {
+        Box b{x + i * bw + 2, y, bw - 4, 28};
+        hits.push_back({b, entries[i].action});
+        bool chosen = mode->kind() == entries[i].kind;
+        if (chosen || b.has(mouse))
+            c.round(b, 4, chosen ? 0xd5e4d5 : 0xe7eee4);
+        c.center(b.x + b.w * .5f, b.y + 7, entries[i].label, Strong, 10, chosen ? green : muted);
+    }
+    auto rows = mode->legend();
+    if (rows.empty())
+        return;
+    size_t count = std::min<size_t>(rows.size(), 6);
+    float h = 36 + count * 21, w = 210, ly = area.y + area.h - 62 - h;
+    ly = std::max(area.y + 56, ly);
+    outline({area.x + 15, ly, w, h}, 0xc2cec2, 0xf9faf3, 6);
+    text(area.x + 25, ly + 8, mode->name(), Strong, 12, dark);
+    for (size_t i = 0; i < count; ++i)
+    {
+        float ry = ly + 29 + i * 21;
+        c.round({area.x + 25, ry + 2, 14, 10}, 2, rows[i].color);
+        capped(area.x + 46, ry, w - 34, rows[i].text, Body, 10, muted);
+    }
+}
+
 void Editor::mapView()
 {
     const Ink sea = 0xe0eae3, wave = 0xa0b9ab;
@@ -553,8 +729,9 @@ void Editor::mapView()
         if (!inView(p))
             continue;
         uint32_t n = noise(h);
-        Ink base = map.regions[t.region].color;
-        Ink fill = mix(base, n % 2 ? 0xf7f2d9 : 0x4c5d48, (n % 17) / 150.f);
+        Ink base = mode->color(h, t);
+        float variation = mode->kind() == ModeKind::Population ? 0.f : (n % 17) / 300.f;
+        Ink fill = variation ? mix(base, n % 2 ? 0xf7f2d9 : 0x4c5d48, variation) : base;
         hexagon(c, p, radius + .08f, fill);
     }
     for (auto &[h, t] : map.tiles)
@@ -562,64 +739,24 @@ void Editor::mapView()
         V p = screen(h);
         if (!inView(p))
             continue;
-        Ink base = map.regions[t.region].color;
+        Ink base = mode->color(h, t);
         uint32_t n = noise(h);
         for (int i = 0; i < 6; i++)
         {
             auto a = adjacent[i];
             auto nb = map.tiles.find({h.q + a.q, h.r + a.r});
-            bool coast = nb == map.tiles.end(), boundary = !coast && nb->second.region != t.region;
-            bool kingdomBorder = boundary && map.regions[t.region].kingdom != map.regions[nb->second.region].kingdom;
+            bool coast = nb == map.tiles.end(), boundary = !coast && mode->color(nb->first, nb->second) != base;
             if (!coast && i >= 3)
                 continue;
             if (coast || boundary || (grid && radius >= 4))
                 c.line(p + corners[i] * radius, p + corners[(i + 1) % 6] * radius,
-                       coast || kingdomBorder ? 1.35f : boundary ? (map.kingdoms.empty() ? 1.25f : .65f) : .65f,
-                       coast ? 0x647e65 : kingdomBorder ? 0x42584d : boundary ? 0x768264 : mix(base, 0x465343, .26f));
+                       coast ? 1.35f : boundary ? 1.0f : .65f,
+                       coast ? 0x647e65 : boundary ? mix(base, 0x293c2e, .6f) : mix(base, 0x465343, .26f));
         }
-        if (radius > 4 && (t.terrain != Terrain::Plains || n % 4 == 0))
+        if (mode->kind() == ModeKind::Natural && radius > 4 && (t.terrain != Terrain::Plains || n % 4 == 0))
             landSymbol(c, p, radius, t.terrain, mix(base, 0x293c2e, .57f), n);
     }
-    if (labels && radius >= (map.kingdoms.empty() ? 4 : 12))
-    {
-        for (size_t i = 0; i < stats.size(); i++)
-        {
-            auto &st = stats[i];
-            if (!st.count)
-                continue;
-            V p = screen(st.anchor);
-            if (!inView(p))
-                continue;
-            int z = radius < 10 ? 12 : radius < 17 ? 15
-                                                   : 18;
-            auto name = wide(map.regions[i].name);
-            float width = c.width(name, Italic, z, .5f);
-            if (width > area.w * .65f)
-                continue;
-            // A light cartographic halo preserves the terrain under each label.
-            for (auto d : {V{-1.4f, 0}, V{1.4f, 0}, V{0, -1.4f}, V{0, 1.4f}, V{-1, 1}, V{1, -1}})
-                c.center(p.x + d.x, p.y - z * .62f + d.y, name, Italic, z, 0xf1edda, .5f);
-            c.center(p.x, p.y - z * .62f, name, Italic, z, 0x344336, .5f);
-        }
-    }
-    if (labels)
-    {
-        for (size_t i = 0; i < kingdomStats.size(); ++i)
-        {
-            auto &st = kingdomStats[i];
-            if (!st.count)
-                continue;
-            V p = screen(st.anchor);
-            if (!area.has(p))
-                continue;
-            const auto &kingdom = map.kingdoms[i];
-            auto name = wide(kingdom.name), ruler = wide(kingdom.ruler);
-            float width = std::max(c.width(name, Serif, 16), c.width(ruler, Strong, 11)) + 16;
-            outline({p.x - width / 2, p.y - 20, width, 40}, 0xacb6a4, 0xf8f6e9);
-            c.center(p.x, p.y - 17, name, Serif, 16, dark);
-            c.center(p.x, p.y + 3, ruler, Strong, 11, muted);
-        }
-    }
+    drawModeLabels();
     if (selected && inView(screen(*selected)))
     {
         auto p = screen(*selected);
@@ -662,6 +799,7 @@ void Editor::mapView()
     c.line({sx, by - 4}, {sx + len, by - 4}, 1.3f, 0x627b69);
     for (float x : {sx, sx + len / 2, sx + len})
         c.line({x, by - 4}, {x, by - 9}, 1.f, 0x627b69);
+    drawModeTools();
 }
 
 void Editor::panel()
@@ -740,6 +878,21 @@ void Editor::panel()
         capped(x, y + 3, width, wide(kingdom.name), Strong, 13, dark);
         capped(x, y + 22, width, wide(kingdom.ruler), Body, 12, muted);
     }
+    if (tool != Paint && tile)
+    {
+        auto info = mode->inspector(*selected, *tile);
+        if (!info.empty())
+        {
+            std::wstringstream lines(info);
+            std::wstring line;
+            int row = 0;
+            while (std::getline(lines, line) && row < 4)
+            {
+                capped(x, y + 41 + row * 16, width, line, Body, 11, muted);
+                ++row;
+            }
+        }
+    }
 }
 void Editor::draw()
 {
@@ -755,7 +908,7 @@ void Editor::draw()
         H = nextH;
         layout();
         if (atFit)
-            fit();
+            fitActive();
     }
     refreshStats();
     Box full{0, 0, W, H};
@@ -815,9 +968,12 @@ void Editor::draw()
     c.rect({0, H - 31, W, 31}, 0xf1f3eb);
     c.circle({pad + 4, H - 15}, 3.3f, dirty ? 0xb08847 : 0x698d65);
     text(pad + 15, H - 23, dirty ? L"Unsaved changes" : L"Saved to disk", Body, 12, muted);
-    text(pad + 148, H - 23, tool == Paint ? L"Paint  ·  Drag to add or recolor hexes" : tool == Pan ? L"Pan  ·  Drag to move the map"
-                                                                                                    : L"Select  ·  Click a hex to inspect",
-         Body, 12, muted);
+    std::wstring modeStatus = mode ? mode->status() : std::wstring{};
+    if (modeStatus.empty() && mode)
+        modeStatus = mode->name();
+    if (tool == Paint)
+        modeStatus += L"  ·  Paint";
+    capped(pad + 148, H - 23, std::max(160.f, W - pad * 2 - 390), modeStatus, Body, 12, muted);
     auto coord = area.has(mouse) ? std::optional<Hex>(pick(mouse)) : selected;
     auto pos = coord ? L"Q " + std::to_wstring(coord->q) + L"   R " + std::to_wstring(coord->r) : L"Axial grid";
     text(W - pad - c.width(pos, Mono, 11), H - 22, pos, Mono, 11, muted);
@@ -914,6 +1070,22 @@ static LRESULT CALLBACK windowProc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp)
                 e->action(Open);
             else if (ctrl && (wp == 'Z' || wp == 'Y'))
                 e->undo(wp == 'Y' || shift);
+            else if (wp == 'E')
+            {
+                e->setMode(ModeKind::Political);
+                e->mode->reset();
+                e->fitActive();
+            }
+            else if (wp == VK_F1)
+                e->action(ModePolitical);
+            else if (wp == VK_F2)
+                e->action(ModeNatural);
+            else if (wp == VK_F3)
+                e->action(ModeReligion);
+            else if (wp == VK_F4)
+                e->action(ModeCulture);
+            else if (wp == VK_F5)
+                e->action(ModePopulation);
             else if (wp == 'V')
                 e->action(Select);
             else if (wp == 'H')
@@ -997,6 +1169,7 @@ int WINAPI wWinMain(HINSTANCE instance, HINSTANCE, PWSTR, int show)
         app.renderer.init(hwnd);
         app.ready = true;
         ShowWindow(hwnd, show);
+        app.fitActive();
         UpdateWindow(hwnd);
         MSG m{};
         while (GetMessageW(&m, nullptr, 0, 0) > 0)

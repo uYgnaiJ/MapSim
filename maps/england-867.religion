@@ -1,0 +1,47 @@
+RELIGIONATLAS 1
+map = England in 867
+title = England in 867 - majority-population religion
+
+# Scope: the prevailing religious affiliation of each hex's local population,
+# not the faith of its ruler, an occupying force, or every individual resident.
+# The single colour is a historical conclusion, not a request for visual diversity.
+[identities]
+# id | display name | colour | semantic scope
+christian | Christianity | #7895B1 | Christianity as the prevailing religious affiliation of the local population; this umbrella includes varied Anglo-Saxon and Cornish churches and does not assert uniform belief or observance.
+
+[regions]
+# atlas region | identity | confidence | evidence and caveat
+bernicia | christian | approximate | Northumbria had longstanding bishoprics and monasteries. Christianity is the local-majority reconstruction; survival of older practices and differences in observance cannot be quantified.
+western-northumbria | christian | approximate | A Christian Northumbrian majority is the broad reconstruction despite uncertain political and cultural boundaries; uncertain ethnicity does not imply a pagan majority.
+deira | christian | approximate | The Christian local majority is retained after the Danish victory. The Great Army is separate military context, and Halfdan's Northumbrian land division belongs to 876, not March 867.
+lindsey | christian | approximate | Christianity was established across the Anglo-Saxon kingdoms; this broad regional rule does not assert universal personal observance or ecclesiastical uniformity.
+mercia-core | christian | approximate | Christianity was established across the Anglo-Saxon kingdoms; this broad regional rule does not assert universal personal observance or ecclesiastical uniformity.
+wreocensaete | christian | approximate | Christianity was established across the Anglo-Saxon kingdoms; this broad regional rule does not assert universal personal observance or ecclesiastical uniformity.
+magonsaete | christian | approximate | Christianity was established across the Anglo-Saxon kingdoms; this broad regional rule does not assert universal personal observance or ecclesiastical uniformity.
+hwicce | christian | approximate | Christianity was established across the Anglo-Saxon kingdoms; this broad regional rule does not assert universal personal observance or ecclesiastical uniformity.
+middle-anglia | christian | approximate | Christianity was established across the Anglo-Saxon kingdoms; this broad regional rule does not assert universal personal observance or ecclesiastical uniformity.
+southern-mercia | christian | approximate | Christianity was established across the Anglo-Saxon kingdoms; this broad regional rule does not assert universal personal observance or ecclesiastical uniformity.
+middle-saxons | christian | approximate | Christianity was established across the Anglo-Saxon kingdoms; this broad regional rule does not assert universal personal observance or ecclesiastical uniformity.
+north-folk | christian | approximate | Edmund's kingdom had Christian royal and ecclesiastical institutions. Peace with and supply of the Great Army in 865-866 did not make the East Anglian population pagan.
+south-folk | christian | approximate | Edmund's kingdom had Christian royal and ecclesiastical institutions. Peace with and supply of the Great Army in 865-866 did not make the East Anglian population pagan.
+devon | christian | approximate | Christianity was established across the Anglo-Saxon kingdoms; this broad regional rule does not assert universal personal observance or ecclesiastical uniformity.
+dorset | christian | approximate | Christianity was established across the Anglo-Saxon kingdoms; this broad regional rule does not assert universal personal observance or ecclesiastical uniformity.
+somerset | christian | approximate | Christianity was established across the Anglo-Saxon kingdoms; this broad regional rule does not assert universal personal observance or ecclesiastical uniformity.
+hampshire | christian | approximate | Christianity was established across the Anglo-Saxon kingdoms; this broad regional rule does not assert universal personal observance or ecclesiastical uniformity.
+wight | christian | approximate | Christianity was established across the Anglo-Saxon kingdoms; this broad regional rule does not assert universal personal observance or ecclesiastical uniformity.
+wiltshire | christian | approximate | Christianity was established across the Anglo-Saxon kingdoms; this broad regional rule does not assert universal personal observance or ecclesiastical uniformity.
+berkshire | christian | approximate | Christianity was established across the Anglo-Saxon kingdoms; this broad regional rule does not assert universal personal observance or ecclesiastical uniformity.
+kent | christian | approximate | Christian institutions are directly visible in the contemporary 867 Canterbury charter S 338; the regional rule remains a broad population reconstruction, not a claim about every person.
+surrey | christian | approximate | Christianity was established across the Anglo-Saxon kingdoms; this broad regional rule does not assert universal personal observance or ecclesiastical uniformity.
+sussex | christian | approximate | Christianity was established across the Anglo-Saxon kingdoms; this broad regional rule does not assert universal personal observance or ecclesiastical uniformity.
+essex | christian | approximate | Christianity was established across the Anglo-Saxon kingdoms; this broad regional rule does not assert universal personal observance or ecclesiastical uniformity.
+cornwall | christian | approximate | The Cornish population and church were Christian, with their own institutional history. Kenstec's acknowledgment of Canterbury is datable only within 833-870; no c.930 St Germans settlement is backdated.
+
+[units]
+# Optional canonical unit overrides: aaa-bbb-ccc | identity | confidence | note
+# None are used: evidence does not support finer majority-religion boundaries.
+
+[military-context]
+# Separate, non-colouring annotations: unit ID | group | affiliation | scope caveat
+# This is not an identity definition and never enters labels() or legend().
+088-000-050 | Great Heathen Army at Danish-held York | Predominantly pagan / non-Christian in contemporary Christian narratives | Military-group context only, not the majority religion of York or Deira; individual affiliations were neither counted nor necessarily static or homogeneous.

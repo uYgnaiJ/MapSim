@@ -1,0 +1,52 @@
+FIELDATLAS-POLITICAL 1
+map = England in 867
+
+# Snapshot after the Northumbrian defeat at York (21 March 867), before Nottingham.
+# parent records effective overlordship, not a modern administrative hierarchy.
+# independent=true marks an effective root authority; it is not a claim of modern sovereignty.
+# The 25 atlas regions remain geographic subdivisions, not 25 peer kingdoms.
+# Primary/academic references (full discussion: docs/political.md):
+# https://avalon.law.yale.edu/medieval/ang09.asp (ASC 866-876)
+# https://celt.ucc.ie/document/T100001A (Annals of Ulster U867.8)
+# https://archive.org/details/historicalworks00simegoog (Symeon/Historia Regum tradition)
+# https://esawyer.lib.cam.ac.uk/charter/338.html (S 338, AD 867, Wessex and Kent)
+# https://doi.org/10.1017/S0003581516000718 (Great Army character; later Torksey evidence)
+# https://www.roman-britain.co.uk/classical-references/welsh-celtic-literature/annales-cambriae/
+# (Dungarth is attested in 875, not assumed to be ruler in 867.)
+
+[polities]
+# id | parent (- for root) | name | ruler | independent | #RRGGBB | detail / uncertainty
+york | - | Great Army at York | Great Army; command uncertain | true | #536B8F | Composite military occupation after 21 Mar 867; not the later Danelaw.
+northumbria | york | Northumbria | Ecgberht I (client king) | false | #86A9BE | Client rule is attested beyond the Tyne; western reach is uncertain.
+mercia | - | Mercia | King Burgred | true | #7D9B76 | Independent in 867; the 868 Wessex alliance was not subordination.
+east-anglia | - | East Anglia | King Edmund | true | #D2A64F | Independent in 867; peace and horse supply in 865/866 were not conquest.
+wessex | - | Wessex | King Æthelred I | true | #B77E9C | Includes Kent and south-eastern dependencies; Alfred was not yet king.
+cornwall | - | Cornwall (West Welsh) | Ruler unnamed in 867 | true | #5E9E96 | Local Cornish authority; the degree of West Saxon overlordship is uncertain.
+
+[regions]
+# atlas region id | leaf polity id (the Region.kingdom equivalent)
+bernicia | northumbria
+western-northumbria | northumbria
+deira | york
+lindsey | mercia
+mercia-core | mercia
+wreocensaete | mercia
+magonsaete | mercia
+hwicce | mercia
+middle-anglia | mercia
+southern-mercia | mercia
+middle-saxons | mercia
+north-folk | east-anglia
+south-folk | east-anglia
+devon | wessex
+dorset | wessex
+somerset | wessex
+hampshire | wessex
+wight | wessex
+wiltshire | wessex
+berkshire | wessex
+kent | wessex
+surrey | wessex
+sussex | wessex
+essex | wessex
+cornwall | cornwall

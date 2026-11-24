@@ -1,0 +1,55 @@
+CULTUREATLAS 1
+map = England in 867
+title = England in 867 — mainstream culture and regional identity
+
+# Broad, historically sourced identities, not racial types or claims of cultural uniformity.
+# Names and colours are shared by every unit assigned to the same identity.
+# A region-level row is deliberately coarse: it does not manufacture sub-regional boundaries.
+[identities]
+# id | display name | colour | semantic scope
+northumbrian | Northumbrian Anglian | #4F78A0 | Shared Northumbrian Anglian identity across Bernicia and Deira; older provincial loyalties and British inheritance remain possible.
+mercian | Mercian Anglian | #6C9A62 | Broad Mercian Anglian identity of the Trent-centred core and southern Mercian province; not automatically extended to every subject people.
+lindsey | Lindsey Anglian (Mercian sphere) | #8FA45F | Regional Lindsey identity within the Mercian political sphere; distinct provincial history and British inheritance are not erased.
+wreocensaete | Wreocensæte (western Mercian) | #4E8B72 | Attested western Mercian provincial people; the label denotes regional affiliation rather than a culturally pure population.
+magonsaete | Magonsæte (western Mercian) | #7A9B5A | Attested western Mercian provincial people; its exact early territory and identification in the Tribal Hidage remain debated.
+hwicce | Hwiccean (Mercian) | #6F9F8A | Regional Hwiccean identity within Mercia, supported by documentary and ecclesiastical evidence; not an independent-polity claim for 867.
+middle-anglian | Middle Anglian (Mercian) | #A39156 | Coarse Middle Anglian identity used instead of inventing boundaries for the many smaller folk groups in the region.
+middle-saxon | Middle Saxon | #8D7860 | Regional Middle Saxon provincial identity under Mercian dominance; historically connected to, but not simply recoloured as, East Saxon.
+east-anglian | East Anglian | #D1A33E | Shared East Anglian identity spanning the North Folk and South Folk subdivisions.
+west-saxon | West Saxon | #B56F8E | Broad West Saxon regional identity in the heartland and attached provinces; British, Jutish and other inheritances remain within it.
+kentish | Kentish (Cantware) | #8D6BA8 | Kentish regional identity retained under West Saxon dynastic rule.
+south-saxon | South Saxon | #C47B57 | South Saxon regional identity retained within the West Saxon political sphere.
+east-saxon | East Saxon | #A55464 | East Saxon regional identity retained despite ninth-century dependence on Wessex.
+cornish | Cornish / West Welsh (Cerniw) | #318C83 | Broad Cornish or West Welsh Brittonic identity; this neither assumes linguistic uniformity nor denies West Saxon elite influence.
+
+[regions]
+# atlas region | identity | confidence | evidence and caveat
+bernicia | northumbrian | approximate | Bernicia is one of the constituent Northumbrian provinces; its Atlas polygon is approximate and local British inheritance is not mapped as a separate majority.
+deira | northumbrian | uncertain | Danish-held York is military and political control, not instant replacement of Deira's population. The Chronicle places Northumbrian land division in 876; Scandinavian presence and cultural change after March 867 remain uncertain.
+western-northumbria | unknown | unknown | Northumbrian political association cannot establish a single Anglian, Brittonic, or hybrid majority here. Evidence for later settlement and Strathclyde expansion is not projected backward to 867.
+mercia-core | mercian | approximate | The Trent-centred heartland supports a broad Mercian Anglian label; the polygon and any cultural transition at its edges are approximate.
+southern-mercia | mercian | approximate | Retained with the broad Mercian core rather than subdividing weakly attested small peoples; Thames-side transitions are not sharp cultural lines.
+lindsey | lindsey | approximate | Lindsey had a documented provincial and ecclesiastical identity and was under Mercian control; its exact 867 self-identification and borders are not directly surveyed.
+wreocensaete | wreocensaete | approximate | The provincial name is independently attested, including in a ninth-century charter; the Atlas boundary is not a precise ethnolinguistic frontier.
+magonsaete | magonsaete | approximate | The Magonsæte are documented as a western Mercian people, but precise extent and the Tribal Hidage's Westerne identification are disputed.
+hwicce | hwicce | approximate | Hwiccean provincial identity is comparatively well documented; Mercian rule does not require replacing it with a uniform Mercian colour.
+middle-anglia | middle-anglian | approximate | Middle Anglia contained multiple smaller groups; a single coarse label avoids unsupported internal cultural borders while acknowledging that aggregate identity.
+middle-saxons | middle-saxon | approximate | Eighth-century charters attest a Middle Saxon province; its earlier relationship to the East Saxon kingdom is uncertain and is not resolved by this map.
+north-folk | east-anglian | approximate | North Folk is a subdivision of the East Angles, not evidence for a separate culture; the Fens and western contact zones remain approximate.
+south-folk | east-anglian | approximate | South Folk shares the broad East Anglian identity with North Folk; no unsupported Norfolk-Suffolk cultural split is drawn.
+devon | west-saxon | uncertain | West Saxon is a broad 867 regional assignment, but British and Dumnonian continuity and the position of any internal language or identity frontier are uncertain.
+dorset | west-saxon | approximate | Broad West Saxon heartland assignment; British continuity and local variation are not rendered as separate demographic claims.
+somerset | west-saxon | approximate | Broad West Saxon assignment; the western contact zone and British continuity prevent treating the polygon as a uniform ethnic block.
+hampshire | west-saxon | approximate | West Saxon heartland label with an older Jutish inheritance in parts of the Solent region; no separate 867 majority is inferred from that inheritance.
+wight | west-saxon | uncertain | Wight was within the West Saxon sphere, but the survival and salience of Jutish identity after conquest are uncertain; the broad label does not deny that memory.
+wiltshire | west-saxon | approximate | Broad West Saxon assignment; northern Thames-side and Mercian contact zones are transitions rather than demonstrated hard cultural borders.
+berkshire | west-saxon | uncertain | Berkshire and the upper Thames had a contested Mercian-West Saxon history; West Saxon is a coarse 867 assignment, not a claim of abrupt cultural replacement.
+kent | kentish | approximate | Kentish identity is retained despite West Saxon rule; Jutish descent tradition and Kentish dialect evidence do not imply cultural homogeneity.
+surrey | west-saxon | uncertain | Surrey was a long-contested and culturally coherent borderland; the coarse West Saxon assignment does not erase Kentish, Middle Saxon, or local connections.
+sussex | south-saxon | approximate | South Saxon identity is retained under West Saxon overlordship; its inland boundary is approximate.
+essex | east-saxon | approximate | East Saxon identity is retained despite West Saxon dependence and the earlier detachment of London and Middlesex.
+cornwall | cornish | uncertain | Cornish or West Welsh is the defensible broad identity, but West Saxon power and settlement were growing. The eastern frontier was fluid; the later Tamar settlement of 936 is not projected back to 867.
+
+[hexes]
+# Optional canonical unit overrides: aaa-bbb-ccc | identity | confidence | note
+# None are used: the evidence does not support finer 867 cultural boundaries than the Atlas regions.

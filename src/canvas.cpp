@@ -169,3 +169,15 @@ void Canvas::center(float x, float y, const std::wstring &s, Font f, int z, Ink 
 {
     text(x - width(s, f, z, track) * .5f, y, s, f, z, ink, track);
 }
+void Canvas::centerRotated(float x, float y, const std::wstring &s, Font f, int z, Ink ink, float angle, float track)
+{
+    size_t first = vertices.size();
+    center(x, y, s, f, z, ink, track);
+    float cs = cosf(angle), sn = sinf(angle);
+    V pivot{x, y + z * .5f};
+    for (size_t i = first; i < vertices.size(); ++i)
+    {
+        V d = vertices[i].pos - pivot;
+        vertices[i].pos = pivot + V{d.x * cs - d.y * sn, d.x * sn + d.y * cs};
+    }
+}
