@@ -1,0 +1,10 @@
+FIELDATLAS 1
+name = Untitled map
+
+[regions]
+# id | name | color
+lowlands | Lowlands | #98B392
+uplands | Uplands | #CCB481
+
+[hexes]
+# q | r | region | terrain
